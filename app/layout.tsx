@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'TENPortal — Área do Aluno',
+  title: 'WORKSHOPPortal — Área do Aluno',
   description: 'Plataforma de membros do Método TEN',
 }
 

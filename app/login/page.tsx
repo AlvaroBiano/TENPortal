@@ -85,7 +85,7 @@ export default function LoginPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <div className={styles.logo}>TEN<span>Portal</span></div>
+        <div className={styles.logo}>WORKSHOP<span>Portal</span></div>
 
         <div className={styles.tabs}>
           <button

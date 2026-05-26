@@ -6,7 +6,7 @@ export default function AlunoPage() {
     <div className={styles.layout}>
       <header className={styles.header}>
         <div className={styles.headerInner}>
-          <div className={styles.logo}>TEN<span>Portal</span></div>
+          <div className={styles.logo}>WORKSHOP<span>Portal</span></div>
           <nav className={styles.nav}>
             <Link href="/aluno" className={styles.navLink}>Meus Cursos</Link>
             <Link href="/aluno/perfil" className={styles.navLink}>Meu Perfil</Link>
