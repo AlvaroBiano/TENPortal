@@ -1,12 +1,12 @@
 import { NextRequest } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
-import { signToken, generateDeviceHash } from '@/lib/auth'
+import { signToken } from '@/lib/auth'
 import { success, error, unauthorized } from '@/lib/api-response'
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, deviceHash } = await req.json()
+    const { email, password, deviceHash }: { email: string; password: string; deviceHash: string } = await req.json()
 
     if (!email || !password) {
       return error('Email e senha são obrigatórios')
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     // Verifica dispositivo (se fornecido)
     if (deviceHash) {
       const existingDevice = await prisma.device.findUnique({
-        where: { profileId: profile.id, hash: deviceHash }
+        where: { profileId_hash: { profileId: String(profile.id), hash: String(deviceHash) } }
       })
 
       if (!existingDevice) {
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     const token = await signToken({
       id: profile.id,
       email: profile.email,
-      role: profile.role as 'student' | 'affiliate' | 'admin'
+      role: (profile.role as 'student' | 'affiliate' | 'admin')
     })
 
     const res = success({

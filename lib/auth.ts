@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 import { prisma } from './prisma'
+import type { Profile } from '@prisma/client'
 
-const JWT_SECRET = process.env.JWT_SECRET || ''
+const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-replace-in-production'
 
 export interface TokenPayload {
   id: string
@@ -11,7 +12,7 @@ export interface TokenPayload {
 }
 
 export async function signToken(payload: TokenPayload): Promise<string> {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' })
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' } as jwt.SignOptions)
 }
 
 export async function verifyToken(token: string): Promise<TokenPayload | null> {
@@ -38,16 +39,4 @@ export async function requireAuth(requiredRole?: 'student' | 'affiliate' | 'admi
     throw new Error('FORBIDDEN')
   }
   return session
-}
-
-export function generateDeviceHash(userAgent: string, ip: string): string {
-  // Fallback simples — em produção usar FingerprintJS no cliente
-  const data = `${userAgent}:${ip}`
-  let hash = 0
-  for (let i = 0; i < data.length; i++) {
-    const char = data.charCodeAt(i)
-    hash = ((hash << 5) - hash) + char
-    hash = hash & hash
-  }
-  return Math.abs(hash).toString(36)
 }

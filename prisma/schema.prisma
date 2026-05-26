@@ -1,3 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  fullName     String   @map("full_name")
+  cpf          String   @unique
+  passwordHash String   @map("password_hash")
+  role         String   @default("student")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  devices     Device[]
+  enrollments Enrollment[]
+  affiliate   Affiliate?
+
+  @@map("profiles")
+}
+
+model Device {
+  id         String   @id @default(uuid())
+  profileId  String   @map("profile_id")
+  hash       String   @map("device_hash")
+  name       String?  @map("device_name")
+  bindCount  Int      @default(1) @map("bind_count")
+  isActive   Boolean  @default(true) @map("is_active")
+  lastUsedAt DateTime @default(now()) @map("last_used_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@unique([profileId, hash])
+  @@map("devices")
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  title         String
+  slug          String   @unique
+  description   String?
+  coverImageUrl String?  @map("cover_image_url")
+  productType   String   @default("course") @map("product_type")
+  price         Float    @default(0)
+  createdAt     DateTime @default(now()) @map("created_at")
+  isActive      Boolean  @default(true) @map("is_active")
+
+  modules      Module[]
+  enrollments  Enrollment[]
+  commissions  Commission[]
+  waitingList  WaitingList[]
+
+  @@map("products")
+}
+
+model Module {
+  id          String   @id @default(uuid())
+  productId   String   @map("product_id")
+  title       String
+  description String?
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  product Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  lessons Lesson[]
+
+  @@map("modules")
+}
+
 model Lesson {
   id              String   @id @default(uuid())
   moduleId        String   @map("module_id")
@@ -11,8 +86,94 @@ model Lesson {
   createdAt       DateTime @default(now()) @map("created_at")
 
   module            Module      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  lastInEnrollments Enrollment @relation("LastLesson")
   progress          Progress[]
 
   @@map("lessons")
+}
+
+model Enrollment {
+  id              String   @id @default(uuid())
+  profileId       String   @map("profile_id")
+  productId       String   @map("product_id")
+  enrolledAt      DateTime @default(now()) @map("enrolled_at")
+  progressPercent Int      @default(0) @map("progress_percent")
+  lastLessonId   String?  @map("last_lesson_id")
+  origin          String   @default("direct")
+
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  progress   Progress[]
+  commissions Commission[]
+
+  @@unique([profileId, productId])
+  @@map("enrollments")
+}
+
+model Progress {
+  id           String    @id @default(uuid())
+  enrollmentId String    @map("enrollment_id")
+  lessonId     String    @map("lesson_id")
+  completed    Boolean   @default(false)
+  completedAt  DateTime? @map("completed_at")
+
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lesson     Lesson     @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([enrollmentId, lessonId])
+  @@map("progress")
+}
+
+model WaitingList {
+  id           String   @id @default(uuid())
+  email        String
+  fullName     String   @map("full_name")
+  cpf          String
+  cpfHash      String?  @map("cpf_hash")
+  productId    String?  @map("product_id")
+  affiliateId  String?  @map("affiliate_id")
+  referralCode String?  @map("referral_code")
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  product   Product?   @relation(fields: [productId], references: [id])
+  affiliate Affiliate? @relation(fields: [affiliateId], references: [id])
+
+  @@map("waiting_list")
+}
+
+model Affiliate {
+  id                String   @id @default(uuid())
+  profileId         String   @unique @map("profile_id")
+  commissionPercent Float    @default(30) @map("commission_percent")
+  referralCode       String   @unique @map("referral_code")
+  referralLink      String?  @map("referral_link")
+  totalCommission   Float    @default(0) @map("total_commission")
+  paidCommission    Float    @default(0) @map("paid_commission")
+  isActive          Boolean  @default(true) @map("is_active")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  profile     Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  waiting    WaitingList[]
+  commissions Commission[]
+
+  @@map("affiliates")
+}
+
+model Commission {
+  id           String    @id @default(uuid())
+  affiliateId  String    @map("affiliate_id")
+  enrollmentId String   @map("enrollment_id")
+  productId    String    @map("product_id")
+  amount       Float
+  ratePercent  Float     @map("rate_percent")
+  status       String    @default("pending")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  paidAt       DateTime? @map("paid_at")
+
+  affiliate  Affiliate  @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  enrollment Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  product   Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([affiliateId, enrollmentId])
+  @@map("commissions")
 }
