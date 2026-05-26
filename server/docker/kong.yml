@@ -1,0 +1,77 @@
+# ============================================
+# Kong — API Gateway Configuration
+# ============================================
+# Proxies requests to:
+#   /rest/*  → PostgREST (port 3000)
+#   /auth/*  → GoTrue auth (port 9999)
+#   /realtime/* → Realtime (port 4000)
+#   /storage/*  → Storage API (port 5000)
+# ============================================
+
+_format_version: "3.0"
+_transformations:
+  - request_body
+  - response_body
+
+services:
+  # ── REST (PostgREST) ──────────────────────────
+  - name: postgrest
+    url: http://127.0.0.1:3000/
+    routes:
+      - name: rest-routes
+        strip_path: true
+        paths:
+          - /rest
+
+  # ── Auth (GoTrue) ────────────────────────────
+  - name: gotrue
+    url: http://127.0.0.1:9999/
+    routes:
+      - name: auth-routes
+        strip_path: true
+        paths:
+          - /auth
+
+  # ── Realtime ────────────────────────────────
+  - name: realtime
+    url: http://127.0.0.1:4000/
+    routes:
+      - name: realtime-routes
+        strip_path: true
+        paths:
+          - /realtime
+
+  # ── Storage ────────────────────────────────
+  - name: storage
+    url: http://127.0.0.1:5000/
+    routes:
+      - name: storage-routes
+        strip_path: true
+        paths:
+          - /storage
+
+plugins:
+  - name: cors
+    config:
+      origins:
+        - "${SITE_URL}"
+        - "https://*.netlify.app"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+      headers:
+        - Accept
+        - Authorization
+        - Content-Type
+        - X-Client-Info
+        - X-Requested-With
+        - apikey
+        - prefer
+      exposed_headers:
+        - X-Total-Count
+        - Content-Range
+      credentials: true
+      max_age: 3600

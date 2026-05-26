@@ -1,0 +1,18 @@
+model Lesson {
+  id              String   @id @default(uuid())
+  moduleId        String   @map("module_id")
+  title           String
+  contentUrl      String?  @map("content_url")
+  description     String?
+  lessonType      String   @default("video_embed") @map("lesson_type")
+  durationSeconds Int      @default(0) @map("duration_seconds")
+  sortOrder       Int      @default(0) @map("sort_order")
+  isFree          Boolean  @default(false) @map("is_free")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  module            Module      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  lastInEnrollments Enrollment @relation("LastLesson")
+  progress          Progress[]
+
+  @@map("lessons")
+}
