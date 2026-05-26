@@ -35,7 +35,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
     where: { enrollmentId: enrollment.id }
   })
 
-  const completedLessonIds = new Set(progress.filter(p => p.completed).map(p => p.lessonId))
+  const completedLessonIds = new Set(progress.filter((p: { completed: boolean }) => p.completed).map((p: { lessonId: string }) => p.lessonId))
 
   return success({
     product,
