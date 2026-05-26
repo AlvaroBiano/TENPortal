@@ -4,11 +4,6 @@
 
 [build.environment]
   NODE_VERSION = "20"
-  DATABASE_URL = "postgresql://tenportal:__DB_PASSWORD__@187.77.59.230:54321/tenportal?schema=tenportal&sslmode=prefer"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-[build]
-  command = "npm run build"
-  publish = ".next"
